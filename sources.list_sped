@@ -1,0 +1,10 @@
+## EOL upgrade sources.list
+# Required
+deb http://old-releases.ubuntu.com/ubuntu/ intrepid main restricted universe multiverse
+deb http://old-releases.ubuntu.com/ubuntu/ intrepid-updates main restricted universe multiverse
+deb http://old-releases.ubuntu.com/ubuntu/ intrepid-security main restricted universe multiverse
+deb http://archive.canonical.com/ubuntu intrepid partner
+
+# Optional
+deb http://old-releases.ubuntu.com/ubuntu/ intrepid-backports main restricted universe multiverse
+deb http://old-releases.ubuntu.com/ubuntu/ intrepid-proposed main restricted universe multiverse

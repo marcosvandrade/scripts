@@ -1,0 +1,90 @@
+#!/bin/bash
+
+#Script de backup automatico do sistema SPED. Desenvolvido pelo 3o Sgt Bonfim - Secinfor 19BC. Versao 1.0
+
+#CONSTANTE PARA GUARDAR O DIRETORIO ONDE SERA REALIZADO O BACKUP, O CAMINHO PODE SER ALTERADO
+readonly localbkp="/home/secinfor-chefe/backup_diario/"
+
+#CONSTANTE PARA GUARDAR A LOCALIZACAO DO ARQUIVO DE LOG GERADO PELO SCRIPT, O CAMINHO PODE SER ALTERADO
+readonly log="/home/secinfor-chefe/backup_diario/log"
+
+#AS LINHAS A SEGUIR NAO DEVEM SER ALTERADAS
+
+echo "DATA DO BACKUP" >> $log
+date >> $log
+
+echo "INICIANDO BACKUP DO SPED" >> $log
+
+echo "PARANDO O SERVICO DO TOMCAT" >> $log
+
+/etc/init.d/tomcat stop >> $log
+
+echo "GERANDO BACKUP DA APLICACAO WEB" >> $log
+
+cd /usr/local/tomcat/webapps
+tar zcvfp backup_webapps_$(date +%d%m%Y).tar.gz sped >> $log
+
+mv backup_webapps* $localbkp >> $log
+
+
+echo "========================================BKP BASE LDAP======================================" >> $log
+cd $localbkp
+echo "PARANDO O SERVICO DO LDAP" >> $log
+/etc/init.d/slapd stop >> $log
+
+echo "GERANDO BACKUP PARA UM ARQUIVO CHAMADO: backup_ldap.ldif" >> $log
+slapcat -l backup_ldap.ldif >> $log
+
+echo "INICIANDO O SERVICO DO LDAP" >> $log
+/etc/init.d/slapd start >> $log
+
+echo "======================================BKP POSTGRES========================================" >> $log
+cd $localbkp
+
+echo "GERANDO BACKUP DO POSTGRES" >> $log
+sudo -u postgres pg_dump -E UTF8 spedDB > backup_SPED.sql
+
+echo "INICIANDO O TOMCAT" >> $log
+#/etc/init.d/tomcat start >> $log
+
+echo "CORRIGE O BUG"
+date -s '2014-01-01'
+/etc/init.d/tomcat start
+sleep 30
+ntpdate 10.57.28.2
+
+echo " "
+echo " "
+
+echo "================================================================================================================$
+#echo "COMPACTANDO OS ARQUIVOS GERADOS DURANTE O BACKUP" >> $log
+
+#cd ..
+tar zcvfp backup_sped_$(date +%d%m%Y).tar.gz sped >> $log
+
+#echo "REMOVENDO ARQUIVOS GERADOS PELO SCRIPT DE BACKUP" >> $log
+#rm $localbkp*
+
+
+echo "REMOVENDO BACKUPS GERADOS A MAIS DE 5 DIAS" >> $log
+find /media/backup_sped/ -mtime +5 -exec rm {} +
+
+echo "================================================================================================================$
+if test $? = 0
+then
+        echo " "
+        echo "BACKUP REALIZADO COM SUCESSO" >> $log
+else
+        echo "Ocorreram falhas na execucao do backup" >> $log
+        echo "Ocorreram "$?" Falhas durante o backup" >> $log
+fi
+
+echo "================================================================================================================$
+
+#echo "Copia o Backup Gerado para a respectiva pasta"
+#DATA=`date +%Y-%m-%d-%H.%M`
+#mkdir backup-sped_"$DATA"
+#cp * backup-sped_"$DATA"
+
+
+
