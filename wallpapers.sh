@@ -2,7 +2,7 @@
 
 #Pasta contendo o local onde está armazenado seus papéis de parede
 
-export wallpaper_path=/home/marcos/hd2TB/Dropbox/wallpaper/maratonaDev
+export wallpaper_path=file:///home/marcos/hd2TB/Dropbox/wallpaper/maratonaDev
 
 shopt -s nullglob
 
@@ -32,9 +32,11 @@ do
 
     #Gerador randômico
 
-    random_index=$(($RANDOM % $wallpapers_size))
+    random_index=$(($RANDOM % ($wallpapers_size+1)))
 
-    gsettings set org.gnome.desktop.background picture-uri ${wallpapers[$random_index]}
+    wallpaper_set=$wallpapers[$random_index]
+
+    gsettings set org.gnome.desktop.background picture-uri "$wallpaper_set"
 
     #Especificar tempo de troca
 
